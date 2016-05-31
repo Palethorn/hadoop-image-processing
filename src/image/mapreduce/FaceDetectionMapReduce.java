@@ -27,9 +27,10 @@ import org.opencv.core.MatOfDouble;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
+import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.HOGDescriptor;
 
-public class ImageMapReduce extends Configured implements Tool {
+public class FaceDetectionMapReduce extends Configured implements Tool {
     
     public static class RectWritable implements Writable {
 
@@ -83,7 +84,7 @@ public class ImageMapReduce extends Configured implements Tool {
         }
     }
 
-    public static class ImageMapper extends Mapper<HipiImageHeader, FloatImage, Text, RectWritable> {
+    public static class FaceDetectionMapper extends Mapper<HipiImageHeader, FloatImage, Text, RectWritable> {
 
         public Mat convertFloatImageToOpenCVMat(FloatImage floatImage) {
 
@@ -118,10 +119,8 @@ public class ImageMapReduce extends Configured implements Tool {
             System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
             Mat m = this.convertFloatImageToOpenCVMat(value);
             MatOfRect found = new MatOfRect();
-            MatOfDouble weights = new MatOfDouble();
-            HOGDescriptor hog = new HOGDescriptor();
-            hog.setSVMDetector(HOGDescriptor.getDefaultPeopleDetector());
-            hog.detectMultiScale(m, found, weights, 0, new Size(8, 8), new Size(32, 32), 1.05, 2, false);
+            CascadeClassifier faceDetector = new CascadeClassifier("haarcascade_frontalface_alt.xml");
+            faceDetector.detectMultiScale(m, found);
             Rect[] rects = found.toArray();
             RectWritable rectWritable;
             for (Rect rect : rects) {
@@ -132,10 +131,10 @@ public class ImageMapReduce extends Configured implements Tool {
         }
     }
 
-    public static class ImageReducer extends Reducer<Text, RectWritable, Text, Text> {
+    public static class FaceDetectionReducer extends Reducer<Text, FaceDetectionMapReduce.RectWritable, Text, Text> {
 
         @Override
-        public void reduce(Text key, Iterable<RectWritable> values, Context context)
+        public void reduce(Text key, Iterable<FaceDetectionMapReduce.RectWritable> values, Context context)
                 throws IOException, InterruptedException {
             JSONArray a = new JSONArray();
             for(RectWritable rect: values) {
@@ -157,15 +156,16 @@ public class ImageMapReduce extends Configured implements Tool {
         Job job = Job.getInstance();
         job.getConfiguration().set("mapred.child.java.opts", "-Djava.library.path=/home/david/source/opencv/build/lib");
         job.addCacheFile(new URI("hdfs://localhost:9000/libraries/libopencv_java310.so#libopencv_java310.so"));
+        job.addCacheFile(new URI("hdfs://localhost:9000/user/hduser/haarcascade_frontalface_alt.xml#haarcascade_frontalface_alt.xml"));
         // Set input format class which parses the input HIB and spawns map tasks
         job.setInputFormatClass(HibInputFormat.class);
         // Set the driver, mapper, and reducer classes which express the computation
-        job.setJarByClass(ImageMapReduce.class);
-        job.setMapperClass(ImageMapper.class);
-        job.setReducerClass(ImageReducer.class);
+        job.setJarByClass(FaceDetectionMapReduce.class);
+        job.setMapperClass(FaceDetectionMapReduce.FaceDetectionMapper.class);
+        job.setReducerClass(FaceDetectionMapReduce.FaceDetectionReducer.class);
         // Ovdje promijeniti output tipove u npr.  KeyPointWriteable, HipiImageHeader itd., ovisi kakvog su tipa rezultati
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(RectWritable.class);
+        job.setMapOutputValueClass(FaceDetectionMapReduce.RectWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
@@ -180,7 +180,7 @@ public class ImageMapReduce extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        ToolRunner.run(new ImageMapReduce(), args);
+        ToolRunner.run(new FaceDetectionMapReduce(), args);
         System.exit(0);
     }
 }
