@@ -23,12 +23,9 @@ import org.json.simple.JSONObject;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfDouble;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
-import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
-import org.opencv.objdetect.HOGDescriptor;
 
 public class FaceDetectionMapReduce extends Configured implements Tool {
     
