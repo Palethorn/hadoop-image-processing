@@ -62,7 +62,7 @@
             <zipgroupfileset dir="/opt/hadoop-2.6.4/share/hadoop/yarn/lib" includes="*.jar"/>
             <zipgroupfileset dir="/opt/hadoop-2.6.4/share/hadoop/mapreduce" includes="*.jar"/>
             <zipgroupfileset dir="/opt/hadoop-2.6.4/share/hadoop/mapreduce/lib" includes="*.jar"/>
-            <zipgroupfileset dir="/home/hduser/hadoop-image-processing" includes="*.jar"/>
+            <zipgroupfileset dir="/home/hduser/hadoop-image-processing/lib" includes="*.jar"/>
         </jar>
     </target>
 

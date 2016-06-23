@@ -53,7 +53,7 @@ public class Tagger {
                     h = (long) o.get("height");
                     System.out.println(String.format("%s %d %d %d %d", parts[0], x, y, w, h));
                     Rect r = new Rect((int)x, (int)y, (int)w, (int)h);
-                    Imgproc.rectangle(m, new Point(r.x, r.y), new Point(r.width, r.height), new Scalar(255,0,0), 2);
+                    Imgproc.rectangle(m, new Point(r.x, r.y), new Point(r.x + r.width,r.y + r.height), new Scalar(255,0,0), 2);
                     Imgcodecs.imwrite(img_output_dir + "/" + new String(Base64.getEncoder().encode(parts[0].getBytes())) + ".jpg", m);
                 }
             }

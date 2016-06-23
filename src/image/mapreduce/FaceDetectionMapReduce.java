@@ -113,10 +113,10 @@ public class FaceDetectionMapReduce extends Configured implements Tool {
         @Override
         public void map(HipiImageHeader key, FloatImage value, Context context)
                 throws IOException, InterruptedException {
-            System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+            System.load("/home/hduser/hadoop-image-processing/lib/jni/libopencv_java310.so");
             Mat m = this.convertFloatImageToOpenCVMat(value);
             MatOfRect found = new MatOfRect();
-            CascadeClassifier faceDetector = new CascadeClassifier("haarcascade_frontalface_alt.xml");
+            CascadeClassifier faceDetector = new CascadeClassifier("haarcascade.xml");
             faceDetector.detectMultiScale(m, found);
             Rect[] rects = found.toArray();
             RectWritable rectWritable;
@@ -151,9 +151,9 @@ public class FaceDetectionMapReduce extends Configured implements Tool {
 
         // Initialize and configure MapReduce job
         Job job = Job.getInstance();
-        job.getConfiguration().set("mapred.child.java.opts", "-Djava.library.path=/home/david/source/opencv/build/lib");
-        job.addCacheFile(new URI("hdfs://localhost:9000/libraries/libopencv_java310.so#libopencv_java310.so"));
-        job.addCacheFile(new URI("hdfs://localhost:9000/user/hduser/haarcascade_frontalface_alt.xml#haarcascade_frontalface_alt.xml"));
+        job.getConfiguration().set("mapred.child.java.opts", "-Djava.library.path=/home/hduser/hadoop-image-processing/lib/jni");
+        job.addCacheFile(new URI("hdfs://localhost:9000/user/hduser/libopencv_java310.so#libopencv_java310.so"));
+        job.addCacheFile(new URI("hdfs://localhost:9000/data/haarcascade_frontalface_default.xml#haarcascade.xml"));
         // Set input format class which parses the input HIB and spawns map tasks
         job.setInputFormatClass(HibInputFormat.class);
         // Set the driver, mapper, and reducer classes which express the computation
